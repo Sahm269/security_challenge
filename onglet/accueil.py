@@ -2,10 +2,10 @@ import streamlit as st
 
 # Titre principal
 st.markdown("""
-    <h1 style="font-size: 36px; color: #3C6E47; text-align: center; font-family: 'Arial', sans-serif;">
+    <h1 style="font-size: 36px; color: #4bcfd1; text-align: center; font-family: 'Arial', sans-serif;">
         📄 <span style="font-weight: bold;">À propos de l'application</span> 📄
     </h1>
-    <p style="font-size: 18px; color: #6A9A7D; text-align: center; font-family: 'Arial', sans-serif;">
+    <p style="font-size: 18px; color: #a8e5e4; text-align: center; font-family: 'Arial', sans-serif;">
         Découvrez les objectifs, les technologies et les créateurs derrière cette application !
     </p>
 """, unsafe_allow_html=True)
@@ -16,7 +16,7 @@ st.write("")  # Espacement
 st.markdown("""
     <style>
         .custom-block {
-            background: #f0f9f4;
+            background: #1a1e32;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -29,15 +29,15 @@ st.markdown("""
         }
 
         .custom-block h2 {
-            color: #3C6E47;
+            color: #4bcfd1;
             font-size: 22px;
             text-align: center;
-            font-family: 'Arial', sans-serif;
+            font-family: monospace;
         }
         .custom-block p, .custom-block ul {
             font-size: 16px;
-            color: #333;
-            font-family: Arial, sans-serif;
+            color: #a8e5e4;
+            font-family: monospace;
             line-height: 1.6;
         }
     </style>
@@ -50,7 +50,7 @@ col3, col4 = st.columns(2)
 # Bloc 1 : Utilisation de l'application
 with col1:
     st.markdown("""
-        <div class="custom-block" style="background: #f0f9f4;">
+        <div class="custom-block" style="background: #151927;">
             <h2>🖥️ Utilisation de l'application 🖥️</h2>
             <p>Cette application a pour but de comparer et d'analyser les commentaires TripAdvisor.</p>
             <p>Vous trouverez quatre onglets :</p>
@@ -66,7 +66,7 @@ with col1:
 # Bloc 2 : Technologies utilisées
 with col2:
     st.markdown("""
-        <div class="custom-block" style="background: #f9f5eb;">
+        <div class="custom-block" style="background: #161A2C;">
             <h2>🤖 Technologies utilisées 🤖</h2>
             <p>Cette application a été développée avec :</p>
             <ul>
@@ -83,7 +83,7 @@ with col2:
 # Bloc 3 : Fonctionnalités
 with col3:
     st.markdown("""
-        <div class="custom-block" style="background: #fefaf2;">
+        <div class="custom-block" style="background: #161A2C;">
             <h2>⚙️ Fonctionnalités ⚙️</h2>
             <p>Notre application offre les fonctionnalités suivantes :</p>
             <ul>
@@ -98,7 +98,7 @@ with col3:
 # Bloc 4 : Créateurs
 with col4:
     st.markdown("""
-        <div class="custom-block" style="background: #eef7f1;">
+        <div class="custom-block" style="background: #151927;">
             <h2>👥 Créateurs 👥</h2>
             <p>Cette application a été développée par <strong>Béranger Thomas</strong>, 
             <strong>Souraya Ahmed Abderemane</strong>, et <strong>Lucile Perbet</strong>, dans le cadre 

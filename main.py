@@ -17,8 +17,8 @@ def add_logo():
                 background-image: url("data:image/png;base64,{logo_data}");
                 background-repeat: no-repeat;
                 padding-top: 275px;
-                background-position: center 20px;
-                background-size: 70%;
+                background-position: center -50px;
+                background-size: 100%;
             }}
         </style>
         """,
