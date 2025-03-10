@@ -15,53 +15,29 @@ def load_data():
 df = load_data()
 
 # Affichage des premières lignes
-title = "🔍 Analyse approfondie et détection d’anomalies"
+title = "🔍 Détection d’anomalies"
 st.title(title)
 st.write("Exploration et détection d'anomalies dans les logs réseau.")
 
 # Sélection des attributs utiles (à adapter selon le fichier de log)
-st.sidebar.header("Filtres")
 time_col = "date"  # Adapter au fichier
 df[time_col] = pd.to_datetime(df[time_col])
 
 # Détection des IPs suspectes (DDoS)
 st.subheader("📌 Détection d’attaques DDoS")
+# Widgets pour ajuster les seuils
+seuil = st.slider("Seuil minimum de requêtes pour prise en compte :", min_value=1, max_value=100, value=95)
 ip_counts = df['ipsrc'].value_counts()
-thresh = np.percentile(ip_counts, 99)
+thresh = np.percentile(ip_counts, seuil)
 ddos_ips = ip_counts[ip_counts > thresh].index.tolist()
-st.write(f"Seuil de détection (99e percentile) : {thresh:.0f} requêtes")
+st.write(f"Seuil de détection ({seuil}e percentile) : {thresh:.0f} requêtes")
 st.write(f"Nombre d'IPs suspectes : {len(ddos_ips)}")
 st.write(ip_counts[ip_counts > thresh])
-
-# Heatmap de corrélation
-st.subheader("📊 Heatmap des corrélations")
-num_cols = df.select_dtypes(include=[np.number]).columns
-corr_matrix = df[num_cols].corr()
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-st.pyplot(fig)
-
-# Histogramme des tentatives d'accès
-st.subheader("📊 Histogramme des tentatives d’accès dans le temps")
-df['hour'] = df[time_col].dt.hour
-fig, ax = plt.subplots()
-sns.histplot(df['hour'], bins=24, kde=True, ax=ax)
-ax.set_xlabel("Heure de la journée")
-ax.set_ylabel("Nombre de tentatives")
-st.pyplot(fig)
-
-# Scatter plot des IPs selon la fréquence d'accès
-st.subheader("📊 Scatter plot des IPs en fonction de leur fréquence d'accès")
-fig, ax = plt.subplots()
-sns.scatterplot(x=df['ipsrc'], y=df['ipdst'], alpha=0.5)
-ax.set_xlabel("Source IP")
-ax.set_ylabel("Destination IP")
-st.pyplot(fig)
 
 # Clustering des IPs suspectes
 st.subheader("📌 Clustering des IPs selon leur comportement")
 if len(ddos_ips) > 2:
-    df_ddos = df[df['ipsrc'].isin(ddos_ips)][['ipsrc', 'ipdst', 'port']]
+    df_ddos = df[df['ipsrc'].isin(ddos_ips)][['ipsrc', 'ipdst', 'portdst']]
     df_ddos['ipsrc'] = df_ddos['ipsrc'].astype('category').cat.codes
     df_ddos['ipdst'] = df_ddos['ipdst'].astype('category').cat.codes
 
