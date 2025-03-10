@@ -2,5 +2,5 @@
 primaryColor = "#0A1F44"
 backgroundColor = "rgb(26, 30, 50)"
 secondaryBackgroundColor = "rgb(20, 24, 38)"
-textColor = "rgb(0, 242, 255)"
+textColor = "#00f2ff"
 font = "monospace"
