@@ -142,9 +142,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Ajouter les onglets Tableau et Graphiques
-
-
-
 tabs = st.tabs(["Tableau", "Graphiques"])
 with tabs[0]:
 
@@ -186,6 +183,7 @@ with tabs[0]:
 
     # Affichage du tableau interactif
     st.subheader("Détails des flux")
+    
     st.data_editor(df_filtered, use_container_width=True, hide_index=True)
 
 
@@ -198,6 +196,8 @@ with tabs[1]:
         # 1. Distribution des flux par protocole
         fig1 = px.histogram(df_filtered, x="proto", color="action", barmode="stack", title="Répartition des flux par protocole")
         st.plotly_chart(fig1, use_container_width=True) 
+
+
         
         # 2. Répartition des flux autorisés et rejetés par port
         fig2 = px.histogram(df_filtered, x="portdst", color="action", barmode="group", title="Répartition des flux autorisés et rejetés par port")
