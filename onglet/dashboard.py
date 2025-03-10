@@ -4,10 +4,17 @@ import plotly.express as px
 import ipaddress
 import plotly.graph_objects as go
 
-st.title("Dashboard")
-
+st.markdown("""
+    <h1 style="font-size: 36px; color: #4bcfd1; text-align: center; font-family: 'Arial', sans-serif;">
+        📊 <span style="font-weight: bold;">Dashboard</span> 📊
+    </h1>
+    <p style="font-size: 18px; color: #a8e5e4; text-align: center; font-family: 'Arial', sans-serif;">
+        Analyse de différentes métriques pour les IPs.
+    </p>
+""", unsafe_allow_html=True)
 # Charger les données
-df = pd.read_csv("data/1h-attack-log.csv",sep=",",names=["ipsrc","ipdst","portdst","proto","action","date","regle"])
+#df = pd.read_csv("data/1h-attack-log.csv",sep=",",names=["ipsrc","ipdst","portdst","proto","action","date","regle"])
+df = pd.read_csv("data/log_clear.txt", sep="\t", encoding="utf-8", names=["date","ipsrc", "ipdst", "proto", "portsrc","portdst","regle","action", "interface_In","interface_out"], header=0)
 
 # # Comptage des actions par IP source
 # df_counts = df.groupby(["ipsrc", "action"]).size().reset_index(name="count")
@@ -36,9 +43,78 @@ df = pd.read_csv("data/1h-attack-log.csv",sep=",",names=["ipsrc","ipdst","portds
 
 # st.plotly_chart(fig)
 
+st.header("Analyse des ports")
+
+# Top 10 des ports les plus utilisés
+filtered_ports = df[(df['portdst'] < 1024) & (df['action'] == 'PERMIT')]
+
+top_10_ports = filtered_ports['portdst'].value_counts().head(10)
+# Créer un DataFrame à partir de top_10_ports
+df_top_10_ports = top_10_ports.reset_index()
+
+# Renommer les colonnes
+df_top_10_ports.columns = ['portdst', 'count']
+
+df_top_10_ports = df_top_10_ports.sort_values(by='portdst')
+
+# change type portdst à str
+df_top_10_ports['portdst'] = df_top_10_ports['portdst'].astype(str)
+
+# Ajouter le suffixe port devant chaque valeur de portdst 
+df_top_10_ports['portdst'] = df_top_10_ports['portdst'].apply(lambda x: 'port '+ x)
+
+# Sort le df 
+df_top_10_ports = df_top_10_ports.sort_values(by='count', ascending=True)
+
+st.subheader("Top 10 des ports inférieurs à 1024 avec un accès permit")
+fig_10 = px.bar(df_top_10_ports,
+                x='count', 
+                y=df_top_10_ports['portdst'], 
+                orientation='h',
+                labels={'y': 'Port', 'count': 'Nombre de connexions'},
+                text='count'
+)
+st.plotly_chart(fig_10)
+
+# Créer un diagramme de Sankey entre les protocoles et les actions
+st.subheader("Flux de données entre les règles et les actions")
+
+# Comptage des flux entre les protocoles et les actions
+df_sankey = df.groupby(['regle', 'action']).size().reset_index(name='count')
+
+# Créer un dictionnaire pour les noeuds (regle et actions)
+nodes = pd.concat([df_sankey['regle'], df_sankey['action']]).unique()
+node_dict = {node: i for i, node in enumerate(nodes)}
+
+# Créer les liens pour le Sankey
+links = df_sankey.apply(lambda row: {
+    "source": node_dict[row['regle']],
+    "target": node_dict[row['action']],
+    "value": row['count']
+}, axis=1).tolist()
+
+# Préparer la figure Sankey
+fig_sankey = go.Figure(go.Sankey(
+    node=dict(
+        pad=15,  # Espace autour des noeuds
+        thickness=20,  # Largeur des noeuds
+        line=dict(color="black", width=0.5),  # Bordure des noeuds
+        label=nodes  # Labels des noeuds
+    ),
+    link=dict(
+        source=[link["source"] for link in links],
+        target=[link["target"] for link in links],
+        value=[link["value"] for link in links],
+        color="blue"  # Couleur des liens
+    )
+))
+
+# Affichage du graphique dans Streamlit
+st.plotly_chart(fig_sankey)
+
+st.subheader("Top 5 des IPs sources les plus actives")
 
 top_5_ips = df['ipsrc'].value_counts().head(5)
-st.subheader("Top 5 des IPs sources les plus actives")
 fig_top5 = px.bar(top_5_ips, 
                   x=top_5_ips.index, 
                   y=top_5_ips.values, 
@@ -47,8 +123,7 @@ fig_top5 = px.bar(top_5_ips,
 )
 st.plotly_chart(fig_top5)
 
-
-st.subheader("Pourcentage d'actions Deny pour les 5 IP source les plus actives")
+st.subheader("Pourcentage d'actions Deny pour les 5 IPs source les plus actives")
 
 # Comptage des actions par IP source
 df_counts = df.groupby(["ipsrc", "action"]).size().reset_index(name="count")
@@ -64,7 +139,7 @@ df_top5 = df_top5.reset_index(drop=True)
 df_top5['percent'] = df_top5.groupby('ipsrc')['count'].apply(lambda x: x / x.sum() * 100).values
 
 # Sort par ip filtrer pour uniquement que les deny
-df_top5 = df_top5[df_top5['action'] == 'Deny']
+df_top5 = df_top5[df_top5['action'] == 'DENY']
 df_top5 = df_top5.sort_values(by='ipsrc')
 
 fig3 = px.line_polar(df_top5, r='percent', theta='ipsrc', line_close=True)
@@ -81,126 +156,14 @@ fig3.update_layout(
 
 st.plotly_chart(fig3)
 
-# Sélection des 5 IPs sources les plus actives
-top_5_ips = df["ipsrc"].value_counts().head(5).index
+# Drop les lignes avec des nan
+df.dropna(subset=['ipsrc', 'ipdst'], inplace=True)
 
-# Filtrer le DataFrame pour obtenir les lignes correspondantes aux IPs sources
-df_top5 = df[df["ipsrc"].isin(top_5_ips)]
-
-# Filtrer les IPs destination (ipdst) qui ne sont pas dans les 5 IPs sources les plus actives
-df_top5_dest = df_top5[~df_top5["ipdst"].isin(top_5_ips)]
-
-# Créer un DataFrame pour les flux (source, destination, et le nombre d'occurrences)
-flow_data = df_top5_dest.groupby(["ipsrc", "ipdst"]).size().reset_index(name="count")
-
-# Créer un dictionnaire pour les noeuds (IPs source et destination)
-nodes = pd.concat([flow_data["ipsrc"], flow_data["ipdst"]]).unique()
-node_dict = {node: i for i, node in enumerate(nodes)}
-
-# Créer les liens pour le Sankey
-links = flow_data.apply(lambda row: {
-    "source": node_dict[row["ipsrc"]],
-    "target": node_dict[row["ipdst"]],
-    "value": row["count"]
-}, axis=1).tolist()
-
-# Préparer la figure Sankey
-fig = go.Figure(go.Sankey(
-    node=dict(
-        pad=15,  # Espace autour des noeuds
-        thickness=20,  # Largeur des noeuds
-        line=dict(color="black", width=0.5),  # Bordure des noeuds
-        label=nodes  # Labels des noeuds
-    ),
-    link=dict(
-        source=[link["source"] for link in links],
-        target=[link["target"] for link in links],
-        value=[link["value"] for link in links],
-        color="blue"  # Couleur des liens
-    )
-))
-
-# Affichage du graphique dans Streamlit
-st.subheader("Graphique Sankey des flux entre IP Source et IP Destination")
-st.plotly_chart(fig)
-
-# Top 10 des ports les plus utilisés
-filtered_ports = df[(df['portdst'] < 1024) & (df['action'] == 'Permit')]
-top_10_ports = filtered_ports['portdst'].value_counts().head(10)
-# Créer un DataFrame à partir de top_10_ports
-df_top_10_ports = top_10_ports.reset_index()
-
-# Renommer les colonnes
-df_top_10_ports.columns = ['portdst', 'count']
-
-# print(df_top_10_ports)
-
-df_top_10_ports = df_top_10_ports.sort_values(by='portdst')
-
-# change type portdst à str
-df_top_10_ports['portdst'] = df_top_10_ports['portdst'].astype(str)
-
-# Ajouter le suffixe port devant chaque valeur de portdst 
-df_top_10_ports['portdst'] = df_top_10_ports['portdst'].apply(lambda x: 'port '+ x)
-
-# Sort le df 
-df_top_10_ports = df_top_10_ports.sort_values(by='count', ascending=True)
-
-print(df_top_10_ports)
-# Afficher le DataFrame
-st.subheader("Top 10 des ports inférieurs à 1024 avec un accès autorisé")
-fig_10 = px.bar(df_top_10_ports,
-                x='count', 
-                y=df_top_10_ports['portdst'], 
-                orientation='h',
-                labels={'y': 'Port', 'count': 'Nombre de connexions'},
-                text='count'
-)
-st.plotly_chart(fig_10)
-
-
-# Trier df par portdst
-df_top_10_ports = df_top_10_ports.sort_values(by='portdst')
-
-# change type portdst à str
-df_top_10_ports['portdst'] = df_top_10_ports['portdst'].astype(str)
-
-# Ajouter le suffixe port devant chaque valeur de portdst 
-df_top_10_ports['portdst'] = df_top_10_ports['portdst'].apply(lambda x: 'port '+ x)
-
-# Remove le port 80 
-df_top_10_ports = df_top_10_ports[df_top_10_ports['portdst'] != 'port 80']
-
-
-# Afficher le texte de Theta en noir et en gras
-fig2 = px.line_polar(df_top_10_ports, r='count', theta='portdst', line_close=True)
-fig2.update_traces(fill='toself')
-
-fig2.update_layout(
-    polar=dict(
-        radialaxis=dict(
-            tickfont=dict(size=14, family='Arial', color='black', weight='bold'),
-        )
-    )
-)
-
-st.plotly_chart(fig2)
-
-# Nombre de connexions Deny par jour
-df['date'] = pd.to_datetime(df['date'])
-df['day'] = df['date'].dt.date
-deny_connections = df[df['action'] == 'Deny'].groupby('day').size().reset_index(name='count')
-st.subheader("Nombre de connexions Deny par jour")
-fig_deny = px.line(deny_connections, x='day', y='count', labels={'day': 'Date', 'count': 'Nombre de connexions Deny'}, title="Nombre de connexions Deny par jour")
-st.plotly_chart(fig_deny)
-
-
-
-# Plan d'adressage de l'Université
 university_ip_ranges = [
     ipaddress.ip_network('192.168.0.0/16'),
-    ipaddress.ip_network('159.84.0.0/16'),
-    ipaddress.ip_network('10.70.0.0/16'),
+    #ipaddress.ip_network('159.84.0.0/16'),
+    ipaddress.ip_network('172.16.0.0/12'),
+    ipaddress.ip_network('10.0.0.0/8'),
 ]
 
 def is_valid_ip(ip):
@@ -216,16 +179,45 @@ def is_university_ip(ip):
     ip_addr = ipaddress.ip_address(ip)
     return any(ip_addr in network for network in university_ip_ranges)
 
-# Filtrer les adresses IP invalides
-df = df[df['ipsrc'].apply(is_valid_ip)]
+def is_valid_ip(ip):
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+# Fonction pour vérifier si une IP est hors des plages définies
+def is_outside_university(ip):
+    return not any(ipaddress.ip_address(ip) in net for net in university_ip_ranges)
+
+# df["is_outside"] = df["ipsrc"].apply(lambda ip: not any(ipaddress.ip_address(ip) in ipaddress.ip_network(net) for net in university_ip_ranges))
+
+# st.dataframe(df)
+
+# Filtrer les lignes où soit `ipsrc` soit `ipdst` est hors des plages
+# df_valid = df[df["ipsrc"].apply(is_valid_ip) & df["ipdst"].apply(is_valid_ip)]
+# filtered_df = df_valid[df_valid["ipsrc"].apply(is_outside_university) | df_valid["ipdst"].apply(is_outside_university)]
+
+# df_valid = df[df["ipsrc"].apply(is_valid_ip) & df["ipdst"].apply(is_valid_ip)]
+
+# # Filtrer les adresses IP invalides
+# df = df[df['ipsrc'].apply(is_valid_ip)]
 
 # Lister les accès des adresses non incluses dans le plan d'adressage de l'Université
-non_university_accesses = df[~df['ipsrc'].apply(is_university_ip)]
 st.subheader("Accès des adresses non incluses dans le plan d'adressage de l'Université")
+
+non_university_accesses = df[~df['ipsrc'].apply(is_university_ip)]
+
+# Adress unique des IP sources non incluses
+st.metric("Nombre d'adresses IP sources uniques non incluses : ", non_university_accesses['ipsrc'].nunique())
+
 st.write(non_university_accesses)
 
+# piechart pour les actions pour les adresses non incluses dans le plan d'adressage de l'Université
+fig_pie = px.pie(non_university_accesses, names='action', title='Répartition des actions pour les adresses non incluses')
+st.plotly_chart(fig_pie)
 
-st.title("Analyse des IP sources et destinations")
+st.subheader("Analyse des IP sources et destinations")
 
 # Calculer le nombre total de connexions par IP source, action et IP destination
 df_count = df.groupby(['ipsrc', 'action', 'ipdst']).size().reset_index(name='total_connections')
@@ -248,9 +240,6 @@ fig_slider = px.scatter(filtered_df_count, x="ipsrc", y="total_connections", col
 fig_slider.update_xaxes(tickangle=270)
 
 st.plotly_chart(fig_slider)
-
-
-
 
 # Sélecteur interactif pour choisir une IP source
 selected_ipsrc = st.selectbox("Sélectionnez une IP source :", df['ipsrc'].unique())
