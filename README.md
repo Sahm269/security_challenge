@@ -13,7 +13,7 @@
 
 ## 🚀 Lancer l'application
 
-Assurez-vous d'avoir **Docker** installé sur votre machine. Pour démarrer l'application, exécutez la commande suivante :
+Assurez-vous d'avoir **Docker** installé sur votre machine et naviguer jusqu'à la racine du projet. Pour démarrer l'application, exécutez la commande suivante :
 
 ```sh
 docker compose up --build
