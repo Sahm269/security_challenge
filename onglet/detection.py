@@ -85,14 +85,20 @@ if st.button("Lancer le clustering"):
         )
         st.plotly_chart(fig, use_container_width=True)
         st.subheader("📌 Caractérisation des clusters")
+        # Ajouter la liste des IPs associées à chaque cluster
+        cluster_ips = df_ddos.groupby('cluster')['ipsrc_orig'].apply(lambda x: ', '.join(x.unique())).reset_index()
+        
         cluster_summary = df_ddos.groupby('cluster').agg(
             nb_ipsrc=('ipsrc_orig', 'nunique'),
             nb_ipdst=('ipdst_orig', 'nunique'),
             avg_portdst=('portdst', 'mean'),
             proportion_deny=('action', lambda x: (x == 'DENY').mean())
         ).reset_index()
+        # Fusionner avec les IPs associées
+        cluster_summary = cluster_summary.merge(cluster_ips, on='cluster')
+        cluster_summary.rename(columns={'ipsrc_orig': 'IP Sources Associées'}, inplace=True)
         st.write("Résumé des caractéristiques des clusters :")
-        st.dataframe(cluster_summary)        
+        st.dataframe(cluster_summary)    
     else:
         st.write("Pas assez d'IP suspectes pour faire un clustering.")
 
