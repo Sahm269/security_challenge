@@ -52,13 +52,13 @@ with col1:
     st.markdown("""
         <div class="custom-block" style="background: #151927;">
             <h2>🖥️ Utilisation de l'application 🖥️</h2>
-            <p>Cette application a pour but de comparer et d'analyser les commentaires TripAdvisor.</p>
+            <p>Cette application a pour but d'analyser des données de logs.</p>
             <p>Vous trouverez quatre onglets :</p>
             <ul>
                 <li><strong>🏠 Accueil :</strong> Informations générales</li>
-                <li><strong>📊 Dashboard :</strong> Comparer les restaurants</li>
-                <li><strong>🔍 Exploration :</strong> Analyse détaillée</li>
-                <li><strong>⚠️ Détection d'anomalies :</strong> Ajouter un restaurant</li>
+                <li><strong>📊 Dashboard :</strong> Analyses générales des IPs et des Ports</li>
+                <li><strong>🔍 Exploration :</strong> Analyse détaillée des flux par protocoles</li>
+                <li><strong>⚠️ Détection d'anomalies :</strong> Analyse des IPs surchargés</li>
             </ul>
         </div>
     """, unsafe_allow_html=True)
