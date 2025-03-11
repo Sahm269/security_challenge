@@ -1,7 +1,6 @@
 [theme]
-base="light"
-primaryColor="#6A5ACD"  # Un violet bleuté élégant
-backgroundColor="#F0F8FF"  # Un bleu clair doux
-secondaryBackgroundColor="#D8BFD8"  # Un violet pastel
-textColor="#333333"  # Un gris foncé pour le texte
-font="serif"
+primaryColor = "#00f2ff"
+backgroundColor = "rgb(26, 30, 50)"
+secondaryBackgroundColor = "rgb(20, 24, 38)"
+textColor = "#00f2ff"
+font = "monospace"
