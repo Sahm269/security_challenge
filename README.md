@@ -1,8 +1,19 @@
-# security_challenge
+# Security Challenge
 
-**analyses** : ça va etre toutes les fonction d'analyses qu'on va utiliser dans notre application
-**assets** : images de l'appli 
-**data** : tout ce qui est lié à la bdd et les données 
-**notebook** : brouillon notebbok pour analyse 
-**pages** : les pages de l'appli 
-**main** : fichiers principal
+**Security Challenge** est un projet développé avec Streamlit et déployé sur Docker.
+
+## 📁 Structure du projet
+
+- **analyses/** : Contient les fonctions pour charger les données.
+- **assets/** : Regroupe les images et ressources graphiques utilisées dans l'application.
+- **data/** : Stocke les fichiers liés à la base de données et aux données du projet.
+- **notebook/** : Contient des notebooks Jupyter servant de brouillons pour l'analyse des données.
+- **onglet/** : Ensemble des pages de l'application Streamlit.
+- **main/** : Fichier principal de l'application.
+
+## 🚀 Lancer l'application
+
+Assurez-vous d'avoir **Docker** installé sur votre machine. Pour démarrer l'application, exécutez la commande suivante :
+
+```sh
+docker compose up --build
