@@ -196,8 +196,9 @@ with tabs[0]:
 
         with col2:
             # 📊 3. Distribution des ports de destination utilisés
-            fig3 = px.histogram(df_filtered, x="portdst", nbins=30, color="proto",
-                                title="Distribution des ports de destination utilisés")
+            fig3 = px.bar(df_filtered.groupby("portdst")["action"].count().reset_index(),
+                            x="portdst", y="action",
+                            title="Répartition des flux par port de destination",
+                            labels={"portdst": "Port de destination", "action": "Nombre de flux"},
+                            color="action")
             func.st.plotly_chart(fig3, use_container_width=True)
-
-           
