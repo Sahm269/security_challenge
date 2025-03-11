@@ -10,7 +10,7 @@ st.markdown("""
         📊 <span style="font-weight: bold;">Dashboard</span> 📊
     </h1>
     <p style="font-size: 18px; color: #a8e5e4; text-align: center; font-family: 'Arial', sans-serif;">
-        Analyse de différentes métriques pour les IPs.
+        Analyse de différentes métriques pour les IPs et les ports.
     </p>
 """, unsafe_allow_html=True)
 # Charger les données
@@ -128,7 +128,6 @@ with col3:
     st.markdown('<div class="stat-box"><div class="stat-title">Flux rejetés</div><div class="stat-value">{}</div></div>'.format(len(df[df["action"] == "DENY"])), unsafe_allow_html=True)
 
 
-
 st.header("Analyse des ports")
 
 # Top 10 des ports les plus utilisés
@@ -162,41 +161,41 @@ fig_10 = px.bar(df_top_10_ports,
 )
 st.plotly_chart(fig_10)
 
-# Créer un diagramme de Sankey entre les protocoles et les actions
-st.subheader("Flux de données entre les règles et les actions")
+# # Créer un diagramme de Sankey entre les protocoles et les actions
+# st.subheader("Flux de données entre les règles et les actions")
 
-# Comptage des flux entre les protocoles et les actions
-df_sankey = df.groupby(['regle', 'action']).size().reset_index(name='count')
+# # Comptage des flux entre les protocoles et les actions
+# df_sankey = df.groupby(['regle', 'action']).size().reset_index(name='count')
 
-# Créer un dictionnaire pour les noeuds (regle et actions)
-nodes = pd.concat([df_sankey['regle'], df_sankey['action']]).unique()
-node_dict = {node: i for i, node in enumerate(nodes)}
+# # Créer un dictionnaire pour les noeuds (regle et actions)
+# nodes = pd.concat([df_sankey['regle'], df_sankey['action']]).unique()
+# node_dict = {node: i for i, node in enumerate(nodes)}
 
-# Créer les liens pour le Sankey
-links = df_sankey.apply(lambda row: {
-    "source": node_dict[row['regle']],
-    "target": node_dict[row['action']],
-    "value": row['count']
-}, axis=1).tolist()
+# # Créer les liens pour le Sankey
+# links = df_sankey.apply(lambda row: {
+#     "source": node_dict[row['regle']],
+#     "target": node_dict[row['action']],
+#     "value": row['count']
+# }, axis=1).tolist()
 
-# Préparer la figure Sankey
-fig_sankey = go.Figure(go.Sankey(
-    node=dict(
-        pad=15,  # Espace autour des noeuds
-        thickness=20,  # Largeur des noeuds
-        line=dict(color="black", width=0.5),  # Bordure des noeuds
-        label=nodes  # Labels des noeuds
-    ),
-    link=dict(
-        source=[link["source"] for link in links],
-        target=[link["target"] for link in links],
-        value=[link["value"] for link in links],
-        color="blue"  # Couleur des liens
-    )
-))
+# # Préparer la figure Sankey
+# fig_sankey = go.Figure(go.Sankey(
+#     node=dict(
+#         pad=15,  # Espace autour des noeuds
+#         thickness=20,  # Largeur des noeuds
+#         line=dict(color="black", width=0.5),  # Bordure des noeuds
+#         label=nodes  # Labels des noeuds
+#     ),
+#     link=dict(
+#         source=[link["source"] for link in links],
+#         target=[link["target"] for link in links],
+#         value=[link["value"] for link in links],
+#         color="blue"  # Couleur des liens
+#     )
+# ))
 
-# Affichage du graphique dans Streamlit
-st.plotly_chart(fig_sankey)
+# # Affichage du graphique dans Streamlit
+# st.plotly_chart(fig_sankey)
 
 st.subheader("Top 5 des IPs sources les plus actives")
 
@@ -246,8 +245,8 @@ st.plotly_chart(fig3)
 df.dropna(subset=['ipsrc', 'ipdst'], inplace=True)
 
 university_ip_ranges = [
-    ipaddress.ip_network('192.168.0.0/16'),
-    #ipaddress.ip_network('159.84.0.0/16'),
+    #ipaddress.ip_network('192.168.0.0/16'),
+    ipaddress.ip_network('159.84.0.0/16'),
     ipaddress.ip_network('172.16.0.0/12'),
     ipaddress.ip_network('10.0.0.0/8'),
 ]
@@ -295,7 +294,14 @@ st.subheader("Accès des adresses non incluses dans le plan d'adressage de l'Uni
 non_university_accesses = df[~df['ipsrc'].apply(is_university_ip)]
 
 # Adress unique des IP sources non incluses
-st.metric("Nombre d'adresses IP sources uniques non incluses : ", non_university_accesses['ipsrc'].nunique())
+
+col4, col5 = st.columns(2)
+with col4:
+    st.markdown('<div class="stat-box"><div class="stat-title">Nombre d\'adresses IP sources non incluses</div><div class="stat-value">{}</div></div>'.format(non_university_accesses['ipsrc'].shape[0]), unsafe_allow_html=True)
+
+with col5 : 
+    st.markdown('<div class="stat-box"><div class="stat-title">Nombre d\'adresses IP sources uniques non incluses</div><div class="stat-value">{}</div></div>'.format(non_university_accesses['ipsrc'].nunique()), unsafe_allow_html=True)
+
 
 st.write(non_university_accesses)
 
@@ -317,8 +323,8 @@ filtered_df_count = df_count[(df_count['total_connections'] >= selected_range[0]
 
 fig_slider = px.scatter(filtered_df_count, x="ipsrc", y="total_connections", color="action",
                         symbol="action", 
-                        symbol_map={"Permit": "circle", "Deny": "cross"},
-                        color_discrete_map={"Permit": "blue", "Deny": "red"},
+                        symbol_map={"PERMIT": "circle", "DENY": "cross"},
+                        color_discrete_map={"PERMIT": "blue", "DENY": "red"},
                         title="Nombre total de connexions par IP source et action",
                         labels={"ipsrc": "IP Source", "total_connections": "Nombre total de connexions", "action": "Action"},
                         hover_data={"ipdst": "IP Dest"})
@@ -341,10 +347,10 @@ fig_scatter = px.scatter(
     df_grouped,
     x='ipdst',
     y='Count',
-    color='action',  # Couleur en fonction de Permit/Deny
-    symbol='action',  # Différentes formes en fonction de Permit/Deny
-    color_discrete_map={'Permit': 'blue', 'Deny': 'red'},  # Bleu pour Permit, Rouge pour Deny
-    symbol_map={'Permit': 'circle', 'Deny': 'cross'},  # Cercle pour Permit, Croix pour Deny
+    color='action',  
+    symbol='action',  
+    color_discrete_map={'PERMIT': 'blue', 'DENY': 'red'},  
+    symbol_map={'PERMIT': 'circle', 'DENY': 'cross'},
     title=f"Connexions vers IP destination depuis {selected_ipsrc}",
     labels={'ipdst': 'IP destination', 'Count': 'Nombre de connexions'}
 )
