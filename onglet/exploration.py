@@ -188,11 +188,11 @@ with tabs[0]:
                         title="Répartition des flux autorisés vs rejetés par protocole")
             func.st.plotly_chart(fig1, use_container_width=True)
 
-            # 📈 2. Évolution temporelle des flux (par protocole et action)
-            df_time = df_filtered.groupby([func.pd.Grouper(key="date", freq="D"), "action"]).size().reset_index(name="count")
-            fig2 = px.line(df_time, x="date", y="count", color="action",
-                        title="Évolution temporelle des flux")
-            func.st.plotly_chart(fig2, use_container_width=True)
+             # 🥧 4. Répartition des flux par règles du firewall
+            fig4 = px.pie(df_filtered, names="regle", title="Répartition des flux par règles du firewall")
+            func.st.plotly_chart(fig4, use_container_width=True)
+
+           
 
         with col2:
             # 📊 3. Distribution des ports de destination utilisés
@@ -200,6 +200,4 @@ with tabs[0]:
                                 title="Distribution des ports de destination utilisés")
             func.st.plotly_chart(fig3, use_container_width=True)
 
-            # 🥧 4. Répartition des flux par règles du firewall
-            fig4 = px.pie(df_filtered, names="regle", title="Répartition des flux par règles du firewall")
-            func.st.plotly_chart(fig4, use_container_width=True)
+           

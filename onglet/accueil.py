@@ -56,9 +56,9 @@ with col1:
             <p>Vous trouverez quatre onglets :</p>
             <ul>
                 <li><strong>🏠 Accueil :</strong> Informations générales</li>
-                <li><strong>📊 Comparaison :</strong> Comparer les restaurants</li>
-                <li><strong>🔍 Zoom sur un restaurant :</strong> Analyse détaillée</li>
-                <li><strong>📥 Ajout :</strong> Ajouter un restaurant</li>
+                <li><strong>📊 Dashboard :</strong> Comparer les restaurants</li>
+                <li><strong>🔍 Exploration :</strong> Analyse détaillée</li>
+                <li><strong>⚠️ Détection d'anomalies :</strong> Ajouter un restaurant</li>
             </ul>
         </div>
     """, unsafe_allow_html=True)
@@ -75,7 +75,7 @@ with col2:
                 <li>Pandas (manipulation des données)</li>
                 <li>Plotly (visualisations graphiques)</li>
                 <li>SQLite (base de données)</li>
-                <li>Beautiful Soup (scraping)</li>
+               
             </ul>
         </div>
     """, unsafe_allow_html=True)
@@ -87,10 +87,10 @@ with col3:
             <h2>⚙️ Fonctionnalités ⚙️</h2>
             <p>Notre application offre les fonctionnalités suivantes :</p>
             <ul>
-                <li>Analyse des avis pour chaque restaurant</li>
-                <li>Comparaison sur plusieurs critères</li>
-                <li>Visualisation des tendances et classements</li>
-                <li>Ajout de nouveaux restaurants</li>
+                <li> Analyse descriptive des flux rejetés et autorisés par protocoles (TCP, UDP) </li>
+                <li> Visualisation interactive des données</li>
+                <li> Un Dashboard intuitif avec des statistiques clés</li>
+                <li> Et une partie machine learning </li>
             </ul>
         </div>
     """, unsafe_allow_html=True)
@@ -100,8 +100,8 @@ with col4:
     st.markdown("""
         <div class="custom-block" style="background: #151927;">
             <h2>👥 Créateurs 👥</h2>
-            <p>Cette application a été développée par <strong>Béranger Thomas</strong>, 
+            <p>Cette application a été développée par <strong>Bértrand Klein</strong>, 
             <strong>Souraya Ahmed Abderemane</strong>, et <strong>Lucile Perbet</strong>, dans le cadre 
-            du cours de NLP du master SISE de l'Université Lumière Lyon 2.</p>
+            du cours de Sécurité du master SISE de l'Université Lumière Lyon 2.</p>
         </div>
     """, unsafe_allow_html=True)
