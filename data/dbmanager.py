@@ -35,7 +35,7 @@ class DBManager:
         if file_path.endswith(".csv"):
             df = pd.read_csv(file_path,sep=",",names=["ipsrc","ipdst","portdst","proto","action","date","regle"])
         elif file_path.endswith(".txt"):
-            df = pd.read_csv(file_path, sep = "\t", encoding="utf-8", names=["date","ipsrc", "ipdst", "proto", "portsrc","portdst","regle","action", "interface_In","interface_out"])  # header=0 pour utiliser la première ligne comme noms de colonnes
+            df = pd.read_csv(file_path, sep = ";", encoding="utf-8", names=["date","ipsrc", "ipdst", "proto", "portsrc","portdst","regle","action", "interface_In"])  # header=0 pour utiliser la première ligne comme noms de colonnes
 
         elif file_path.endswith(".parquet"):
             df = pd.read_parquet(file_path)
@@ -59,7 +59,7 @@ class DBManager:
 # Exemple d'utilisation
 if __name__ == "__main__":
     db = DBManager()
-    db.insert_data_from_file("log_cleaned.txt", "logs_data")
+    db.insert_data_from_file("sampled_logs.txt", "logs_data")
     result = db.query_select("SELECT * from logs_data LIMIT 5")
     print(result)
     db.close()
