@@ -1,22 +1,17 @@
-import streamlit as st
-import sqlite3
-import pandas as pd
+from analyses import fonctions as func
+# import streamlit as st
+# import sqlite3
+# import pandas as pd
 import plotly.express as px
 
-#  Fonction pour charger les données depuis la base SQLite
-@st.cache_data
-def load_data():
-    conn = sqlite3.connect("./data/database.db")
-    query = "SELECT ipsrc, ipdst, portdst, proto, action, date, regle FROM logs_data"
-    df = pd.read_sql(query, conn)
-    conn.close()
-    return df
+
 
 #  Chargement des données
-df = load_data()
-
+df = func.get_data()
+df["portdst"] = func.pd.to_numeric(df["portdst"], errors="coerce")
+df["date"] = func.pd.to_datetime(df["date"], errors="coerce")
 #  Interface
-st.markdown("""
+func.st.markdown("""
     <h1 style="font-size: 36px; color: #4bcfd1; text-align: center; font-family: 'Arial', sans-serif;">
         🔍 <span style="font-weight: bold;">Exploration des Flux Réseau</span> 🔍
     </h1>
@@ -25,10 +20,10 @@ st.markdown("""
     </p>
 """, unsafe_allow_html=True)
 
-st.write("")  # Espacement
+func.st.write("")  # Espacement
 
 # Style personnalisé pour les filtres
-st.markdown("""
+func.st.markdown("""
     <style>
         .filter-section {
             background: #2c3e50;
@@ -59,19 +54,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Conteneur pour les filtres
-with st.container():
+with func.st.container():
     # Filtres dans les colonnes
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = func.st.columns(3)
 
     with col1:
-        protocole_choice = st.selectbox("Sélectionner un protocole", ["Tous"] + df["proto"].unique().tolist())
+        protocole_choice = func.st.selectbox("Sélectionner un protocole", ["Tous"] + df["proto"].unique().tolist())
 
     with col2:
-        flux_choice = st.selectbox("Sélectionner le type de flux", ["Tous"] + df["action"].unique().tolist())
+        flux_choice = func.st.selectbox("Sélectionner le type de flux", ["Tous"] + df["action"].unique().tolist())
 
     with col3:
+
+
         min_port, max_port = int(df["portdst"].min()), int(df["portdst"].max())
-        port_range = st.slider("Plage de ports", min_port, max_port, (min_port, max_port))
+        port_range = func.st.slider("Plage de ports", min_port, max_port, (min_port, max_port))
 
 
 
@@ -84,7 +81,7 @@ if flux_choice != "Tous":
 df_filtered = df_filtered[df_filtered["portdst"].between(port_range[0], port_range[1])]
 
 # Style personnalisé pour les statistiques clés avec dégradé et animation
-st.markdown("""
+func.st.markdown("""
     <style>
             
         .centered-subheader {
@@ -142,29 +139,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Ajouter les onglets Tableau et Graphiques
-tabs = st.tabs(["Tableau", "Graphiques"])
+tabs = func.st.tabs(["Tableau", "Graphiques"])
 with tabs[0]:
 
-    # # Affichage des statistiques 
-    # st.markdown('<div class="centered-subheader">Statistiques clés</div>', unsafe_allow_html=True)
+    # Comptage des flux PERMIT/DENY par protocole
+    flux_counts = df_filtered.groupby(["proto", "action"]).size().unstack(fill_value=0)
+
+    # Affichage du nombre de flux rejetés par protocole
+    func.st.write("### Nombre de flux par protocole et action")
+    func.st.write(flux_counts)
 
 
-    # # Conteneur pour les colonnes de statistiques
-    # col1, col2, col3 = st.columns(3)
-
-    # # Application du style sur chaque colonne
-    # with col1:
-    #     st.markdown('<div class="stat-box"><div class="stat-title">Total des flux</div><div class="stat-value">{}</div></div>'.format(len(df_filtered)), unsafe_allow_html=True)
-
-    # with col2:
-    #     st.markdown('<div class="stat-box"><div class="stat-title">Flux autorisés</div><div class="stat-value">{}</div></div>'.format(len(df_filtered[df_filtered["action"] == "Autorisé"])), unsafe_allow_html=True)
-
-    # with col3:
-    #     st.markdown('<div class="stat-box"><div class="stat-title">Flux rejetés</div><div class="stat-value">{}</div></div>'.format(len(df_filtered[df_filtered["action"] == "Rejeté"])), unsafe_allow_html=True)
-
+   
 
     # Tableau style
-    st.markdown("""
+    func.st.markdown("""
         <style>
         
                 
@@ -182,34 +171,35 @@ with tabs[0]:
     """, unsafe_allow_html=True)
 
     # Affichage du tableau interactif
-    st.subheader("Détails des flux")
+    func.st.subheader("Détails des flux")
     
-    st.data_editor(df_filtered, use_container_width=True, hide_index=True)
+    func.st.data_editor(df_filtered, use_container_width=True, hide_index=True)
 
 
- #Graphiques à afficher dans 4 blocs
-with tabs[1]:
-    # Conteneur pour les 4 graphiques
-    col1, col2 = st.columns(2)
+    #Graphiques à afficher dans 4 blocs
+    with tabs[1]:
+        # Conteneur pour les 4 graphiques
+        col1, col2 = func.st.columns(2)
 
-    with col1:
-        # 1. Distribution des flux par protocole
-        fig1 = px.histogram(df_filtered, x="proto", color="action", barmode="stack", title="Répartition des flux par protocole")
-        st.plotly_chart(fig1, use_container_width=True) 
+        with col1:
+            # 📊 1. Répartition des flux autorisés vs rejetés par protocole
+            fig1 = px.bar(df_filtered.groupby(["proto", "action"]).size().reset_index(name="count"),
+                        x="proto", y="count", color="action", barmode="group",
+                        title="Répartition des flux autorisés vs rejetés par protocole")
+            func.st.plotly_chart(fig1, use_container_width=True)
 
+            # 📈 2. Évolution temporelle des flux (par protocole et action)
+            df_time = df_filtered.groupby([func.pd.Grouper(key="date", freq="D"), "action"]).size().reset_index(name="count")
+            fig2 = px.line(df_time, x="date", y="count", color="action",
+                        title="Évolution temporelle des flux")
+            func.st.plotly_chart(fig2, use_container_width=True)
 
-        
-        # 2. Répartition des flux autorisés et rejetés par port
-        fig2 = px.histogram(df_filtered, x="portdst", color="action", barmode="group", title="Répartition des flux autorisés et rejetés par port")
-        st.plotly_chart(fig2, use_container_width=True)
+        with col2:
+            # 📊 3. Distribution des ports de destination utilisés
+            fig3 = px.histogram(df_filtered, x="portdst", nbins=30, color="proto",
+                                title="Distribution des ports de destination utilisés")
+            func.st.plotly_chart(fig3, use_container_width=True)
 
-    with col2:
-        # 3. Flux par heure de la journée
-        df_filtered['hour'] = pd.to_datetime(df_filtered['date']).dt.hour
-        fig3 = px.line(df_filtered.groupby('hour').size().reset_index(name='count'), x='hour', y='count', title="Flux par heure de la journée")
-        st.plotly_chart(fig3, use_container_width=True)
-
-        # 4. Top 10 des adresses IP source les plus actives
-        ip_counts = df_filtered['ipsrc'].value_counts().head(10)
-        fig4 = px.bar(ip_counts, x=ip_counts.index, y=ip_counts.values, title="Top 10 des adresses IP source les plus actives", labels={'x': 'IP Source', 'y': 'Nombre de flux'})
-        st.plotly_chart(fig4, use_container_width=True)
+            # 🥧 4. Répartition des flux par règles du firewall
+            fig4 = px.pie(df_filtered, names="regle", title="Répartition des flux par règles du firewall")
+            func.st.plotly_chart(fig4, use_container_width=True)

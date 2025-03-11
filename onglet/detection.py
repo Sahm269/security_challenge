@@ -1,3 +1,4 @@
+from analyses import fonctions as func
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -7,21 +8,18 @@ from sklearn.preprocessing import StandardScaler
 import streamlit as st
 
 # Charger les données
-@st.cache_data
-def load_data():
-    df = pd.read_csv("data/1h-attack-log.csv",sep=",",names=["ipsrc","ipdst","portdst","proto","action","date","regle"])
-    return df
-
-df = load_data()
+df = func.get_data()
+df["portdst"] = pd.to_numeric(df["portdst"], errors="coerce")
+df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
 # Affichage des premières lignes
 title = "🔍 Détection d’anomalies"
 st.title(title)
 st.write("Exploration et détection d'anomalies dans les logs réseau.")
 
-# Sélection des attributs utiles (à adapter selon le fichier de log)
-time_col = "date"  # Adapter au fichier
-df[time_col] = pd.to_datetime(df[time_col])
+# # Sélection des attributs utiles (à adapter selon le fichier de log)
+# time_col = "date"  # Adapter au fichier
+# df[time_col] = pd.to_datetime(df[time_col])
 
 # Détection des IPs suspectes (DDoS)
 st.subheader("📌 Détection d’attaques DDoS")

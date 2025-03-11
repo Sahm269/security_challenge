@@ -1,3 +1,4 @@
+from analyses import fonctions as func
 import pandas as pd 
 import streamlit as st
 import plotly.express as px
@@ -14,7 +15,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 # Charger les données
 #df = pd.read_csv("data/1h-attack-log.csv",sep=",",names=["ipsrc","ipdst","portdst","proto","action","date","regle"])
-df = pd.read_csv("data/log_clear.txt", sep="\t", encoding="utf-8", names=["date","ipsrc", "ipdst", "proto", "portsrc","portdst","regle","action", "interface_In","interface_out"], header=0)
+#df = pd.read_csv("data/log_clear.txt", sep="\t", encoding="utf-8", names=["date","ipsrc", "ipdst", "proto", "portsrc","portdst","regle","action", "interface_In","interface_out"], header=0)
+
+#  Chargement des données
+df = func.get_data()
+df["portdst"] = pd.to_numeric(df["portdst"], errors="coerce")
+df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
 # # Comptage des actions par IP source
 # df_counts = df.groupby(["ipsrc", "action"]).size().reset_index(name="count")
@@ -42,6 +48,86 @@ df = pd.read_csv("data/log_clear.txt", sep="\t", encoding="utf-8", names=["date"
 # )
 
 # st.plotly_chart(fig)
+
+# Style personnalisé pour les statistiques clés avec dégradé et animation
+func.st.markdown("""
+    <style>
+            
+        .centered-subheader {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #4bcfd1; 
+            font-family: monospace;
+        }
+        /* Conteneur global pour les statistiques */
+        .stat-section {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background: linear-gradient(45deg, #FF5733, #FF8C00); /* Dégradé coucher de soleil avec des tons de rouge et orange */
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Style pour chaque colonne */
+        .stat-box {
+            text-align: center;
+            flex: 1;
+            padding: 20px;
+            background: linear-gradient(45deg, #FF5733, #FF8C00); /* Dégradé pour les boîtes aussi */
+            border-radius: 8px;
+            animation: fadeIn 1s ease-out; /* Animation d'apparition */
+            margin: 5px;
+        }
+
+        /* Animation pour les boîtes */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Style pour les titres des statistiques */
+        .stat-title {
+            font-size: 18px;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        /* Style pour les valeurs des statistiques */
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+    </style>
+""", unsafe_allow_html=True)
+
+# Affichage des statistiques 
+st.markdown('<div class="centered-subheader">Statistiques clés</div>', unsafe_allow_html=True)
+
+
+# Conteneur pour les colonnes de statistiques
+col1, col2, col3 = st.columns(3)
+
+# Application du style sur chaque colonne
+with col1:
+    st.markdown('<div class="stat-box"><div class="stat-title">Total des flux</div><div class="stat-value">{}</div></div>'.format(len(df)), unsafe_allow_html=True)
+
+with col2:
+    st.markdown('<div class="stat-box"><div class="stat-title">Flux autorisés</div><div class="stat-value">{}</div></div>'.format(len(df[df["action"] == "PERMIT"])), unsafe_allow_html=True)
+
+with col3:
+    st.markdown('<div class="stat-box"><div class="stat-title">Flux rejetés</div><div class="stat-value">{}</div></div>'.format(len(df[df["action"] == "DENY"])), unsafe_allow_html=True)
+
+
 
 st.header("Analyse des ports")
 

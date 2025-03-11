@@ -2,12 +2,12 @@ import sqlite3
 import pandas as pd
 
 class DBManager:
-    def __init__(self, db_name="database.db"):
+    def __init__(self, db_name="database1.db"):
         self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
-        self.create_log_table("logs_data")
-        #self.create_table("t_log")
+        # self.create_log_table("logs_data")
+        
 
     def create_log_table(self, table_name):
         query = f'''
@@ -35,7 +35,8 @@ class DBManager:
         if file_path.endswith(".csv"):
             df = pd.read_csv(file_path,sep=",",names=["ipsrc","ipdst","portdst","proto","action","date","regle"])
         elif file_path.endswith(".txt"):
-            df = pd.read_csv(file_path, delimiter="\t")
+            df = pd.read_csv(file_path, sep = "\t", encoding="utf-8", names=["date","ipsrc", "ipdst", "proto", "portsrc","portdst","regle","action", "interface_In","interface_out"])  # header=0 pour utiliser la première ligne comme noms de colonnes
+
         elif file_path.endswith(".parquet"):
             df = pd.read_parquet(file_path)
         elif file_path.endswith(".xlsx"):
@@ -43,7 +44,7 @@ class DBManager:
         else:
             raise ValueError("Format de fichier non supporté")
         
-        #self.create_table(table_name, df.columns)
+        self.create_table(table_name, df.columns)
         df.to_sql(table_name, self.conn, if_exists="append", index=False)
 
     def query_select(self, sql_query, params=()):
@@ -58,7 +59,7 @@ class DBManager:
 # Exemple d'utilisation
 if __name__ == "__main__":
     db = DBManager()
-    db.insert_data_from_file("1h-attack-log.csv", "logs_data")
+    db.insert_data_from_file("log_cleaned.txt", "logs_data")
     result = db.query_select("SELECT * from logs_data LIMIT 5")
     print(result)
     db.close()
